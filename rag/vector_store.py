@@ -8,6 +8,10 @@ class VectorStoreManager:
         self.vector_store = None
 
     def create_vector_store(self, documents):
+
+        if not documents:
+            raise ValueError("No document chunks found.")
+
         self.vector_store = FAISS.from_documents(
             documents,
             self.embedding_model
@@ -21,14 +25,17 @@ class VectorStoreManager:
         self.vector_store = FAISS.load_local(
             path,
             self.embedding_model,
-            allow_dangerous_deserialization=True
+            allow_dangerous_deserialization=True,
         )
 
     def get_retriever(self):
+        if self.vector_store is None:
+            raise ValueError("Vector store not loaded.")
+
         return self.vector_store.as_retriever(
             search_type="mmr",
             search_kwargs={
                 "k": 5,
                 "fetch_k": 20,
-            }
+            },
         )

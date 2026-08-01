@@ -1,4 +1,5 @@
 import os
+import streamlit as st
 
 from dotenv import load_dotenv
 from google import genai
@@ -8,37 +9,36 @@ load_dotenv()
 
 
 class GeminiEmbeddings(Embeddings):
-    """
-    Custom LangChain Embeddings using the official Google GenAI SDK.
-    """
 
     def __init__(self):
-        api_key = os.getenv("GOOGLE_API_KEY")
+        api_key = (
+            st.secrets.get("GOOGLE_API_KEY")
+            if "GOOGLE_API_KEY" in st.secrets
+            else os.getenv("GOOGLE_API_KEY")
+        )
 
         if not api_key:
             raise ValueError("GOOGLE_API_KEY not found.")
 
         self.client = genai.Client(api_key=api_key)
 
-        self.model = "models/gemini-embedding-001"
+        self.model = "gemini-embedding-001"
 
     def embed_documents(self, texts):
-        embeddings = []
+        if not texts:
+            return []
 
-        for text in texts:
-            response = self.client.models.embed_content(
-                model=self.model,
-                contents=text
-            )
+        response = self.client.models.embed_content(
+            model=self.model,
+            contents=texts
+        )
 
-            embeddings.append(response.embeddings[0].values)
-
-        return embeddings
+        return [embedding.values for embedding in response.embeddings]
 
     def embed_query(self, text):
         response = self.client.models.embed_content(
             model=self.model,
-            contents=text
+            contents=[text]
         )
 
         return response.embeddings[0].values
