@@ -13,14 +13,15 @@ class GeminiEmbeddings(Embeddings):
     """
 
     def __init__(self):
-        # Priority: st.secrets -> os.getenv
+        # Read API key from Streamlit Secrets first, fallback to .env
         api_key = st.secrets.get("GOOGLE_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
         if not api_key:
             raise ValueError("GOOGLE_API_KEY not found.")
 
         self.client = genai.Client(api_key=api_key)
-        self.model = "text-embedding-004"  # Recommended embedding model name
+        # Use exact model ID without "models/" prefix
+        self.model = "text-embedding-004"
 
     def embed_documents(self, texts):
         embeddings = []
@@ -28,7 +29,7 @@ class GeminiEmbeddings(Embeddings):
         for text in texts:
             if not text or not text.strip():
                 continue
-                
+
             response = self.client.models.embed_content(
                 model=self.model,
                 contents=text
