@@ -17,7 +17,7 @@ class RAGChain:
         self.retriever = retriever
 
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash-latest",
+            model="gemini-2.0-flash-lite",  # Updated working model
             google_api_key=os.getenv("GOOGLE_API_KEY"),
             temperature=0.3,
         )
