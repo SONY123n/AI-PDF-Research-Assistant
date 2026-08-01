@@ -24,7 +24,7 @@ class RAGChain:
             raise ValueError("GOOGLE_API_KEY not found.")
 
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash-lite",
+            model="gemini-2.5-flash",
             google_api_key=api_key,
             temperature=0.3,
         )
