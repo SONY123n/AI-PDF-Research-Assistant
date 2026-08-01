@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from rag.prompt import SYSTEM_PROMPT
 
+
 load_dotenv()
 
 
@@ -17,9 +18,9 @@ class RAGChain:
 
         api_key = None
 
-        # Streamlit Cloud secrets
+        # Streamlit Cloud Secret
         try:
-            api_key = st.secrets.get("GOOGLE_API_KEY")
+            api_key = st.secrets["GOOGLE_API_KEY"]
         except Exception:
             pass
 
@@ -29,6 +30,7 @@ class RAGChain:
 
         if not api_key:
             raise ValueError("GOOGLE_API_KEY not found.")
+
 
         self.llm = ChatGoogleGenerativeAI(
             model="gemini-3.5-flash",
@@ -40,6 +42,7 @@ class RAGChain:
     def ask(self, question: str):
 
         docs = self.retriever.invoke(question)
+
 
         if not docs:
             return {
@@ -55,6 +58,7 @@ class RAGChain:
         for doc in docs:
 
             page = doc.metadata.get("page")
+
 
             if page is not None:
                 page_number = page + 1
@@ -100,6 +104,7 @@ Answer:
                 content = response.content
 
 
+                # Gemini can return string or list
                 if isinstance(content, str):
 
                     answer = content
@@ -107,34 +112,34 @@ Answer:
 
                 elif isinstance(content, list):
 
-                    parts = []
+                    answer_parts = []
 
                     for item in content:
 
                         if isinstance(item, str):
-                            parts.append(item)
+                            answer_parts.append(item)
+
 
                         elif isinstance(item, dict):
-                            parts.append(
-                                item.get(
-                                    "text",
-                                    str(item)
-                                )
-                            )
+
+                            text = item.get("text")
+
+                            if text:
+                                answer_parts.append(text)
+
 
                         elif hasattr(item, "text"):
-                            parts.append(item.text)
 
-                        else:
-                            parts.append(str(item))
+                            answer_parts.append(item.text)
 
 
-                    answer = "\n".join(parts)
+                    answer = "\n".join(answer_parts)
 
 
                 else:
 
                     answer = str(content)
+
 
 
                 answer = answer.strip()
@@ -149,13 +154,16 @@ Answer:
             except Exception as e:
 
 
-                if (
-                    "429" in str(e)
-                    or "RESOURCE_EXHAUSTED" in str(e)
-                ) and attempt < 2:
+                error = str(e)
 
-                    time.sleep(12)
+
+                if (
+                    ("429" in error or "RESOURCE_EXHAUSTED" in error)
+                    and attempt < 2
+                ):
+
+                    time.sleep(30)
                     continue
 
 
-                raise
+                raise e
