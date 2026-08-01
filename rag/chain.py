@@ -24,11 +24,10 @@ class RAGChain:
             raise ValueError("GOOGLE_API_KEY not found.")
 
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
+            model="gemini-3.5-flash",
             google_api_key=api_key,
             temperature=0.3,
         )
-
     def ask(self, question):
         docs = self.retriever.invoke(question)
 
